@@ -68,7 +68,7 @@ static void MX_TIM1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint16_t dutyCycle = 10;
+	uint16_t dutyCycle = 5; //5% duty cycle
   /* USER CODE END 1 */
   
 
@@ -109,15 +109,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    htim1.Instance->CCR1 = dutyCycle;
-		htim1.Instance->CCR2 = dutyCycle;
-		dutyCycle+=10;
-		if(dutyCycle > 90)
-		{
-			dutyCycle = 10;
-		}
-		HAL_Delay(1000);			//wait for 1 sec
+    /* USER CODE END WHILE */
+		htim1.Instance->CCR1 = dutyCycle;		// 5% duty cycle
+		htim1.Instance->CCR2 = dutyCycle;		// 5% duty cycle
 		
+		HAL_Delay(2000);
+		
+		htim1.Instance->CCR1 = dutyCycle + 5;		// 10% duty cycle
+		htim1.Instance->CCR2 = dutyCycle + 5;		// 10% duty cycle
+		
+		HAL_Delay(2000);
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -176,7 +178,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 200;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 100;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -202,7 +204,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 25;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -212,12 +214,12 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.Pulse = 25;
+  sConfigOC.Pulse = 100;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 100;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();

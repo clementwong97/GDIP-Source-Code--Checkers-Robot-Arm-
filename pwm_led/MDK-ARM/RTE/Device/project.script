@@ -1,0 +1,4 @@
+load STM32F030R8Tx 
+project name STCubeGenerated 
+project toolchain "MDK-ARM V5" 
+project path "C:\Users\How Jin\OneDrive\UWE EE\3rd Year\Group Design and Integration\PWM\pwm_led\MDK-ARM\RTE\Device\STM32F030R8Tx\" 
