@@ -37,7 +37,26 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+struct motor_mode
+{
+  double motor1_angle;
+  double motor2_angle;
+  double motor3_angle;
+  double motor4_angle;
+  double motor5_angle;
+  double dutyCycle1;
+  double dutyCycle2;
+  double dutyCycle3;
+  double dutyCycle4;
+	int loop;
+  int Xcoord;
+  int Ycoord;
+};
 
+
+void motor_Control(struct motor_mode *control);
+void read_IO(struct motor_mode *input);
+void Move_Decision(struct motor_mode *decision);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

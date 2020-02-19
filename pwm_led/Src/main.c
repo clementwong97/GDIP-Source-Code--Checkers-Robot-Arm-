@@ -21,6 +21,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -43,6 +44,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 
@@ -52,6 +54,7 @@ TIM_HandleTypeDef htim1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -67,8 +70,19 @@ static void MX_TIM1_Init(void);
   */
 int main(void)
 {
+    struct motor_mode motor_data;
+		motor_data.loop = 1;
+    //default and testing position
+    // motor_data.Xcoord = 1;
+    // motor_data.Ycoord = 1;
+    
+    // motor_data.motor1_angle = 180;
+    // double degrees2 = 90;
+    // double degrees3 = 45;
+    // double degrees4 = 30;
+    // double degrees5 = 15;
   /* USER CODE BEGIN 1 */
-	uint16_t dutyCycle = 5; //5% duty cycle
+
   /* USER CODE END 1 */
   
 
@@ -76,50 +90,80 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
-  /* USER CODE BEGIN 2 */
+  MX_TIM3_Init();
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	
-	//TIM1->ARR = 65535/2000;
+	//TIM1->ARR = 65535;
 	//TIM1->CCR1 = 50;
 	//TIM1->CCR2 = 50; 
 	//htim1.Instance->CCR1 = 50;		// 50% duty cycle
 	//htim1.Instance->CCR2 = 50;		// 50% duty cycle
-	//TIM1->CCR2 = 0;		// GREEN
+	//TIM1->CCR2 = 65535;		// GREEN
 	//TIM1->CCR3 = 65535;		// RED
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  //------------------------------------------------------------------------
+  //****Need to check the ON Button before the While Loop*************
   while (1)
   {
     /* USER CODE END WHILE */
-		htim1.Instance->CCR1 = dutyCycle;		// 5% duty cycle
-		htim1.Instance->CCR2 = dutyCycle;		// 5% duty cycle
-		
-		HAL_Delay(2000);
-		
-		htim1.Instance->CCR1 = dutyCycle + 5;		// 10% duty cycle
-		htim1.Instance->CCR2 = dutyCycle + 5;		// 10% duty cycle
-		
-		HAL_Delay(2000);
+			// double dutyCycle1 = motor_Control(degrees1);
+			// double dutyCycle2 = motor_Control(degrees2);
+			// double dutyCycle3 = motor_Control(degrees3);
+			// double dutyCycle4 = motor_Control(degrees4);
+			// double dutyCycle5 = motor_Control(degrees5);
+			
     /* USER CODE BEGIN 3 */
+			read_IO(&motor_data);
+      Move_Decision(&motor_data);
+			motor_Control(&motor_data);
+			htim3.Instance->CCR2 = 1;		// Motor 5 (PIN D11)
+			HAL_Delay(200000);
+			//htim1.Instance->CCR1 = 12;		// Motor 1 (PIN D7) 12 is at 0 degree, 3 is at 90 degrees
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+			HAL_Delay(200000);
+			//htim1.Instance->CCR2 = 0;
+			HAL_Delay(200000);
+			//htim1.Instance->CCR3 = 0;
+			HAL_Delay(200000);
+			//htim3.Instance->CCR1 = 0;
+		
+			//htim1.Instance->CCR2 = motor_data.dutyCycle2 + 1.3;		// Motor 2 (PIN D8) 7 is 90 degrees 
+			//htim1.Instance->CCR3 = motor_data.dutyCycle3 - 4;		// Motor 3 (PIN D2)   //10 (180 degree) 3 to 10 (140 degree range)
+			//htim3.Instance->CCR1 = motor_data.dutyCycle4 + 3;		// Motor 4 (PIN D12)  //3 to 12 (180 degree)
+			
+			htim3.Instance->CCR2 = 12;		// Motor 5 (PIN D11)
+			htim1.Instance->CCR1 = 200;		// Motor 1 (PIN D7)
+			
+			HAL_Delay(500000);
+			//for (int i = 0; i < 15; i++)
+			//{
+			//	htim3.Instance->CCR2 = i;		// Motor 5 (PIN D11)
+			//}
+			HAL_Delay(20000);
+			motor_data.loop++;
+			
+			if (motor_data.loop > 3)
+			{	
+				motor_data.loop = 2;
+			}
+			//htim3.Instance->CCR2 = 3;
+		// }
+    
+		
+		//htim1.Instance->CCR1 = dutyCycle + 5;		// 10% duty cycle
+		//htim1.Instance->CCR2 = dutyCycle + 5;		// 10% duty cycle
+		
+		//HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 }
@@ -170,7 +214,7 @@ static void MX_TIM1_Init(void)
   /* USER CODE END TIM1_Init 0 */
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfi vg = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
@@ -178,9 +222,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 200;
+  htim1.Init.Prescaler = 2;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 100;
+  htim1.Init.Period = 10000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -214,12 +258,10 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.Pulse = 100;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.Pulse = 100;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
@@ -239,6 +281,69 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 200;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 100;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
 
 }
 

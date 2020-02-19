@@ -1,8 +1,11 @@
 --cpu Cortex-M0
 "pwm_led\startup_stm32f030x8.o"
+"pwm_led\motor_control.o"
 "pwm_led\main.o"
 "pwm_led\stm32f0xx_it.o"
 "pwm_led\stm32f0xx_hal_msp.o"
+"pwm_led\move_decision.o"
+"pwm_led\read_io.o"
 "pwm_led\stm32f0xx_hal_tim.o"
 "pwm_led\stm32f0xx_hal_tim_ex.o"
 "pwm_led\stm32f0xx_hal_rcc.o"
